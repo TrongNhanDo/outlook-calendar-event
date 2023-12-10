@@ -96,6 +96,7 @@ app.get('/logout', function (req, res) {
 app.get('/sync', function (req, res) {
    var token = req.session.access_token;
    var email = req.session.email;
+   console.log({ token, email });
    if (token === undefined || email === undefined) {
       console.log('/sync called while not logged in');
       res.redirect('/');

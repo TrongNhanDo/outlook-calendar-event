@@ -1,4 +1,5 @@
 var querystring = require('querystring');
+const { format } = require('date-fns');
 
 var baseHtml =
    '<html>' +
@@ -27,14 +28,16 @@ var buttonRow =
    '<div id="user-email" class="ms-font-l">Signed in as: %email%</div>' +
    '</div>' +
    '<div class="ms-Grid-row">' +
-   '<div class="ms-Grid-col ms-u-sm4">' +
+   '<div class="ms-Grid-col ms-u-sm3">' +
    '<a class="ms-Button ms-Button--primary" href="/sync"><span class="ms-Button-label">Sync calendar</span></a>' +
+   '</div>' +
+   '<div class="ms-Grid-col ms-u-sm3">' +
    '<a class="ms-Button ms-Button--primary" href="/createItem"><span class="ms-Button-label">Add calendar</span></a>' +
    '</div>' +
-   '<div class="ms-Grid-col ms-u-sm4">' +
+   '<div class="ms-Grid-col ms-u-sm3">' +
    '<a class="ms-Button ms-Button--primary" href="/refreshtokens"><span class="ms-Button-label">Refresh tokens</span></a>' +
    '</div>' +
-   '<div class="ms-Grid-col ms-u-sm4">' +
+   '<div class="ms-Grid-col ms-u-sm3">' +
    '<a class="ms-Button ms-Button--primary" href="/logout"><span class="ms-Button-label">Logout</span></a>' +
    '</div>' +
    '</div>';
@@ -120,30 +123,41 @@ module.exports = {
       html += buttonRow.replace('%email%', userEmail);
 
       html += '<div id="table-row" class="ms-Grid-row">';
-      html += '  <div class="ms-font-l ms-fontWeight-semibold">Changes</div>';
+      html +=
+         '  <div class="ms-font-l ms-fontWeight-semibold">List of Events</div>';
       html += '  <div class="ms-Table">';
       html += '    <div class="ms-Table-row">';
       html += '      <div class="ms-Table-cell">Change type</div>';
-      html += '      <div class="ms-Table-cell">Details</div>';
+      html += '      <div class="ms-Table-cell">Subject</div>';
+      html += '      <div class="ms-Table-cell">Start Time</div>';
+      html += '      <div class="ms-Table-cell">End Time</div>';
       html += '      <div class="ms-Table-cell"></div>';
       html += '    </div>';
 
       if (changes && changes.length > 0) {
          changes.forEach(function (change) {
             console.log({ detailEvent: change });
-            var changeType =
+            const changeType =
                change.reason && change.reason === 'deleted'
                   ? 'Delete'
                   : 'Add/Update';
-            var detail =
+            const detail =
                changeType === 'Delete' ? extractId(change) : change.subject;
+            const startTime = format(
+               new Date(change.start.dateTime),
+               'dd-MM-yyyy HH:mm:ss'
+            );
+            const endTime = format(
+               new Date(change.end.dateTime),
+               'dd-MM-yyyy HH:mm:ss'
+            );
+            const detailButton = getViewItemLink(change);
             html += '<div class="ms-Table-row">';
-            html += '  <div class="ms-Table-cell">' + changeType + '</div>';
-            html += '  <div class="ms-Table-cell">' + detail + '</div>';
-            html +=
-               '  <div class="ms-Table-cell">' +
-               getViewItemLink(change) +
-               '</div>';
+            html += `  <div class="ms-Table-cell">${changeType}</div>`;
+            html += `  <div class="ms-Table-cell">${detail}</div>`;
+            html += `  <div class="ms-Table-cell">${startTime}</div>`;
+            html += `  <div class="ms-Table-cell">${endTime}</div>`;
+            html += `  <div class="ms-Table-cell">${detailButton}</div>`;
             html += '</div>';
          });
       } else {
@@ -153,7 +167,6 @@ module.exports = {
 
       html += '  </div>';
       html += '</div>';
-
       html += '<pre>' + JSON.stringify(changes, null, 2) + '</pre>';
       return baseHtml.replace('%title%', 'Sync').replace('%body%', html);
    },
@@ -161,11 +174,8 @@ module.exports = {
    itemDetailPage: function (userEmail, event) {
       var html = '<div class="ms-Grid">';
       html += buttonRow.replace('%email%', userEmail);
-
       html += '<form action="/updateitem" method="get">';
-
       html += '<input name="eventId" type="hidden" value="' + event.id + '"/>';
-
       html += '<div id="event-subject" class="ms-Grid-row">';
       html += '  <div class="ms-Grid-col ms-u-sm12">';
       html += '    <div class="ms-TextField">';
@@ -177,7 +187,6 @@ module.exports = {
       html += '    </div>';
       html += '  </div>';
       html += '</div>';
-
       html += '<div class="ms-Grid-row">';
       html += '  <div class="ms-Grid-col ms-u-sm12">';
       html += '    <div class="ms-TextField">';
@@ -274,6 +283,8 @@ module.exports = {
       html += '  <div class="ms-Grid-col ms-u-sm6">';
       html +=
          '    <input type="submit" class="ms-Button ms-Button--primary ms-Button-label" value="Update item"/>';
+      html +=
+         '    <button type="button" onclick="history.back()" class="ms-Button ms-Button--primary ms-Button-label" style="color: white;">Back</button>';
       html += '  </div>';
       html += '  <div class="ms-Grid-col ms-u-sm6">';
       html +=
