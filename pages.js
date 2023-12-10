@@ -130,7 +130,7 @@ module.exports = {
 
       if (changes && changes.length > 0) {
          changes.forEach(function (change) {
-            console.log({ change });
+            console.log({ detailEvent: change });
             var changeType =
                change.reason && change.reason === 'deleted'
                   ? 'Delete'

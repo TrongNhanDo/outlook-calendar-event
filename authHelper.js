@@ -24,8 +24,7 @@ module.exports = {
          redirect_uri: redirectUri,
          scope: scopes.join(' '),
       });
-      console.log('');
-      console.log('Generated auth url: ' + returnVal);
+      console.log({ generatedAuthUrl: returnVal });
       return returnVal;
    },
 
@@ -38,12 +37,11 @@ module.exports = {
          },
          function (error, result) {
             if (error) {
-               console.log('Access token error: ', error.message);
+               console.log({ accessTokenError: error.message });
                callback(request, response, error, null);
             } else {
                var token = oauth2.accessToken.create(result);
-               console.log('');
-               console.log('Token created: ', token.token);
+               console.log({ tokenCreated: token.token });
                callback(request, response, null, token);
             }
          }
@@ -80,10 +78,10 @@ module.exports = {
       });
       token.refresh(function (error, result) {
          if (error) {
-            console.log('Refresh token error: ', error.message);
+            console.log({ refreshTokenError: error.message });
             callback(request, response, error, null);
          } else {
-            console.log('New token: ', result.token);
+            console.log({ newToken: result.token });
             callback(request, response, null, result);
          }
       });

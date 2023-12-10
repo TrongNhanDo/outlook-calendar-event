@@ -35,8 +35,7 @@ app.get('/', function (req, res) {
 app.get('/authorize', function (req, res) {
    var authCode = req.query.code;
    if (authCode) {
-      console.log('');
-      console.log('Retrieved auth code in /authorize: ' + authCode);
+      console.log({ retrievedAuthCodeInAuthorize: authCode });
       authHelper.getTokenFromCode(authCode, tokenReceived, req, res);
    } else {
       // redirect to home
@@ -49,7 +48,7 @@ app.get('/authorize', function (req, res) {
 
 function tokenReceived(req, res, error, token) {
    if (error) {
-      console.log('ERROR getting token:' + error);
+      console.log({ errorTokenReceived: error });
       res.send('ERROR getting token: ' + error);
    } else {
       // save tokens in session
@@ -150,11 +149,12 @@ app.get('/sync', function (req, res) {
 
    outlook.base.makeApiCall(apiOptions, function (error, response) {
       if (error) {
-         console.log(JSON.stringify(error));
-         res.send(JSON.stringify(error));
+         const errorArr = JSON.stringify(error);
+         console.log({ errorGetAllEvents: errorArr });
+         res.send(errorArr);
       } else {
          if (response.statusCode !== 200) {
-            console.log('API Call returned ' + response.statusCode);
+            console.log({ apiCallReturned: response.statusCode });
             res.send('API Call returned ' + response.statusCode);
          } else {
             var nextLink = response.body['@odata.nextLink'];
@@ -194,7 +194,7 @@ app.get('/viewitem', function (req, res) {
 
    outlook.calendar.getEvent(getEventParameters, function (error, event) {
       if (error) {
-         console.log(error);
+         console.log({ errorDetailEvent: error });
          res.send(error);
       } else {
          res.send(pages.itemDetailPage(email, event));
@@ -214,8 +214,7 @@ app.get('/updateitem', function (req, res) {
    var newSubject = req.query.subject;
    var newLocation = req.query.location;
 
-   console.log('UPDATED SUBJECT: ', newSubject);
-   console.log('UPDATED LOCATION: ', newLocation);
+   console.log({ updatedSubject: newSubject, updatedLocation: newLocation });
 
    var updatePayload = {
       Subject: newSubject,
@@ -232,7 +231,7 @@ app.get('/updateitem', function (req, res) {
 
    outlook.calendar.updateEvent(updateEventParameters, function (error, event) {
       if (error) {
-         console.log(error);
+         console.log({ errorUpdateEvent: error });
          res.send(error);
       } else {
          res.redirect('/viewitem?' + querystring.stringify({ id: itemId }));
@@ -256,7 +255,7 @@ app.get('/deleteitem', function (req, res) {
 
    outlook.calendar.deleteEvent(deleteEventParameters, function (error, event) {
       if (error) {
-         console.log(error);
+         console.log({ errorDeleteEvent: error });
          res.send(error);
       } else {
          res.redirect('/sync');
@@ -285,7 +284,7 @@ app.get('/createItem', function (req, res) {
    };
    outlook.calendar.createEvent(createEventParameters, function (error, event) {
       if (error) {
-         console.log(error);
+         console.log({ errorCreateEvent: error });
          res.send(error);
       } else {
          res.redirect('/sync');
@@ -298,5 +297,5 @@ var server = app.listen(3000, function () {
    var host = server.address().address;
    var port = server.address().port;
 
-   console.log('Example app listening at http://%s:%s', host, port);
+   console.log(`Server is running or port ${port}`);
 });
